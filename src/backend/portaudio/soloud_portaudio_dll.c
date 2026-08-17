@@ -56,21 +56,42 @@ static Pa_OpenDefaultStreamProc dPa_OpenDefaultStream = NULL;
 #ifdef WINDOWS_VERSION
 #include <windows.h>
 
+/*
 static HMODULE pta_openDll()
 {
     HMODULE dllh = LoadLibrary("portaudio_x86.dll");
     return dllh;
 }
+*/
+
+static HMODULE pta_openDll()
+{
+    const char* dllNames[] = {
+        "portaudio.dll",
+        "portaudio_x64.dll",
+        "portaudio_x86.dll"
+    };
+
+    for (int i = 0; i < 3; ++i)
+    {
+        HMODULE dllh = LoadLibraryA(dllNames[i]);
+        if (dllh != NULL)
+        {
+            return dllh;
+        }
+    }
+    return NULL;
+}
 
 static void *pta_getdllproc(HMODULE dllhandle, const char *procname)
 {
-    HMODULE dllh = (HMODULE)dllhandle;
-    return (void*)GetProcAddress(dllh, (LPCSTR)procname);
+    return (void*)GetProcAddress(dllhandle, (LPCSTR)procname);
 }
 
 #else
 #include <dlfcn.h> // dll functions
 
+/*
 static void* pta_openDll()
 {
     void* res = dlopen("libportaudio_x86.so", RTLD_LAZY);
@@ -79,11 +100,40 @@ static void* pta_openDll()
 
 	return res;
 }
+*/
+
+static void* pta_openDll()
+{
+    const char* soNames[] = {
+        "libportaudio.so",
+        "libportaudio.so.2",
+        "libportaudio_x64.so",
+        "libportaudio_x86.so"
+    };
+
+    for (int i = 0; i < 4; ++i)
+    {
+        void* res = dlopen(soNames[i], RTLD_LAZY);
+        if (res != NULL)
+        {
+            return res;
+        }
+    }
+
+#ifdef __APPLE__
+    void* res = dlopen("/Library/Frameworks/PortAudio.framework/PortAudio", RTLD_LAZY);
+    if (res != NULL) return res;
+    
+    res = dlopen("/opt/homebrew/lib/libportaudio.dylib", RTLD_LAZY);
+    if (res != NULL) return res;
+#endif
+
+    return NULL;
+}
 
 static void *pta_getdllproc(void* dllhandle, const char *procname)
 {
-    void* library = dllhandle;
-    return dlsym(library,procname);
+    return dlsym(dllhandle, procname);
 }
 
 #endif
