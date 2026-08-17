@@ -47,7 +47,7 @@ typedef bool (*SDL3_GetAudioDeviceFormat_t)(SDL_AudioDeviceID devid, SDL_AudioSp
 typedef SDL_AudioDeviceID (*SDL3_GetAudioStreamDevice_t)(SDL_AudioStream* stream);
 typedef bool (*SDL3_PutAudioStreamData_t)(SDL_AudioStream *stream, const void* buf, int len);
 typedef char* (*SDL3_GetError_t)(void);
-typedef bool (*SDL3_SetHint_t)(const char* name, const char* value);
+typedef bool (*SDL3_SetHintWithPriority_t)(const char* name, const char* value, SDL_HintPriority priority);
 
 static SDL3_WasInit_t SDL3_WasInit = NULL;
 static SDL3_InitSubSystem_t SDL3_InitSubSystem = NULL;
@@ -60,7 +60,7 @@ static SDL3_GetAudioDeviceFormat_t SDL3_GetAudioDeviceFormat = NULL;
 static SDL3_GetAudioStreamDevice_t SDL3_GetAudioStreamDevice = NULL;
 static SDL3_PutAudioStreamData_t SDL3_PutAudioStreamData = NULL;
 static SDL3_GetError_t SDL3_GetError = NULL;
-static SDL3_SetHint_t SDL3_SetHint = NULL;
+static SDL3_SetHintWithPriority_t SDL3_SetHintWithPriority = NULL;
 
 #ifdef WINDOWS_VERSION
 #include <windows.h>
@@ -122,7 +122,7 @@ static int sdl3_load_dll()
         SDL3_GetAudioStreamDevice = (SDL3_GetAudioStreamDevice_t)sdl3_getDllProc(dll, "SDL_GetAudioStreamDevice");
         SDL3_PutAudioStreamData = (SDL3_PutAudioStreamData_t)sdl3_getDllProc(dll, "SDL_PutAudioStreamData");
         SDL3_GetError = (SDL3_GetError_t)sdl3_getDllProc(dll, "SDL_GetError");
-        SDL3_SetHint = (SDL3_SetHint_t)sdl3_getDllProc(dll, "SDL_SetHint");
+        SDL3_SetHintWithPriority = (SDL3_SetHintWithPriority_t)sdl3_getDllProc(dll, "SDL_SetHintWithPriority");
 
         if (SDL3_WasInit &&
             SDL3_InitSubSystem &&
@@ -134,7 +134,7 @@ static int sdl3_load_dll()
             SDL3_GetAudioStreamDevice &&
             SDL3_PutAudioStreamData &&
             SDL3_GetError &&
-            SDL3_SetHint)
+            SDL3_SetHintWithPriority)
         {
             return 1;
         }
@@ -229,10 +229,10 @@ char* dll_SDL3_GetError(void)
     return NULL;
 }
 
-bool dll_SDL3_SetHint(const char* name, const char* value)
+bool dll_SDL3_SetHintWithPriority(const char* name, const char* value, SDL_HintPriority priority)
 {
-    if (SDL3_SetHint)
-        return SDL3_SetHint(name, value);
+    if (SDL3_SetHintWithPriority)
+        return SDL3_SetHintWithPriority(name, value, priority);
     return false;
 }
 

@@ -27,7 +27,6 @@ freely, subject to the following restrictions:
  */
 
 #include <stdlib.h>
-#include <signal.h>
 
 #include "soloud.h"
 #include "soloud_backend_data_sdl3.h"
@@ -72,9 +71,7 @@ extern "C"
     SDL_AudioDeviceID dll_SDL3_GetAudioStreamDevice(SDL_AudioStream* stream);
     bool dll_SDL3_PutAudioStreamData(SDL_AudioStream* stream, const void* buf, int len);
     char* dll_SDL3_GetError(void);
-    bool dll_SDL3_SetHint(const char* name, const char* value);
-    
-    static void (*previousSigIntHandler)(int) = SIG_DFL;
+    bool dll_SDL3_SetHintWithPriority(const char* name, const char* value, SDL_HintPriority priority);
 };
 
 namespace SoLoud
@@ -128,10 +125,6 @@ namespace SoLoud
         unsigned int aBuffer,
         unsigned int aChannels)
     {
-        previousSigIntHandler = signal(SIGINT, SIG_DFL);
-        
-        dll_SDL3_SetHint(SDL_HINT_NO_SIGNAL_HANDLERS, "1");
-        
         if (!dll_SDL3_found())
         {
             return DLL_NOT_FOUND;
@@ -139,16 +132,14 @@ namespace SoLoud
         
         if (!dll_SDL3_WasInit(SDL_INIT_AUDIO))
         {
+            dll_SDL3_SetHintWithPriority(SDL_HINT_NO_SIGNAL_HANDLERS, "1", SDL_HINT_OVERRIDE);
+            
             if (!dll_SDL3_InitSubSystem(SDL_INIT_AUDIO))
             {
                 printf("SDL3_InitSubSystem failed\n");
                 return UNKNOWN_ERROR;
             }
         }
-        
-        // SDL3 installs its own SIGINT handler on initialization.
-        // We need to revert this so that Ctrl+C in console apps works as usual.
-        signal(SIGINT, SIG_DFL);
 
         SDL_AudioSpec as{};
         as.freq = aSamplerate;
