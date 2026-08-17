@@ -6,6 +6,7 @@ _UpgradeReport_Files/
 *.old
 *.filters
 build/
+build_genie/
 *.aux
 *.out
 *.gz
