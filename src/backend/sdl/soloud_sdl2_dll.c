@@ -73,6 +73,7 @@ static void * sdl2_openDll()
     res = dlopen("/Library/Frameworks/SDL2.framework/SDL2", RTLD_LAZY);
     if (!res) res = dlopen("SDL2.so", RTLD_LAZY);
     if (!res) res = dlopen("libSDL2.so", RTLD_LAZY);
+    if (!res) res = dlopen("libSDL2-2.0.so.0", RTLD_LAZY);
     return res;
 }
 

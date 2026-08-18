@@ -85,6 +85,7 @@ static void* sdl3_openDll()
     res = dlopen("/Library/Frameworks/SDL3.framework/SDL3", RTLD_LAZY);
     if (!res) res = dlopen("SDL3.so", RTLD_LAZY);
     if (!res) res = dlopen("libSDL3.so", RTLD_LAZY);
+    if (!res) res = dlopen("libSDL3.so.0", RTLD_LAZY);
     return res;
 }
 
