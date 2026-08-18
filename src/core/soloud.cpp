@@ -160,10 +160,10 @@ namespace SoLoud
 		m3dAt[2] = -1;
 		m3dUp[0] = 0;
 		m3dUp[1] = 1;
-		m3dUp[2] = 0;		
+		m3dUp[2] = 0;
 		m3dVelocity[0] = 0;
 		m3dVelocity[1] = 0;
-		m3dVelocity[2] = 0;		
+		m3dVelocity[2] = 0;
 		m3dSoundSpeed = 343.3f;
 		mMaxActiveVoices = 16;
 		mHighestVoice = 0;
