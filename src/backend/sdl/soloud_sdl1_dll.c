@@ -43,11 +43,11 @@ static SDLPauseAudio dSDL1_PauseAudio = NULL;
 
 static HMODULE sdl1_openDll()
 {
-	HMODULE res = LoadLibraryA("SDL.dll");
+    HMODULE res = LoadLibraryA("SDL.dll");
     return res;
 }
 
-static void* sdl1_getDllProc(HMODULE aDllHandle, const char *aProcName)
+static void* sdl1_getDllProc(HMODULE aDllHandle, const char* aProcName)
 {
     return GetProcAddress(aDllHandle, aProcName);
 }
@@ -55,16 +55,16 @@ static void* sdl1_getDllProc(HMODULE aDllHandle, const char *aProcName)
 #else
 #include <dlfcn.h> // dll functions
 
-static void * sdl1_openDll()
+static void* sdl1_openDll()
 {
-	void * res;
-	res = dlopen("/Library/Frameworks/SDL.framework/SDL", RTLD_LAZY);
-	if (!res) res = dlopen("SDL.so", RTLD_LAZY);
-	if (!res) res = dlopen("libSDL.so", RTLD_LAZY);
+    void* res;
+    res = dlopen("/Library/Frameworks/SDL.framework/SDL", RTLD_LAZY);
+    if (!res) res = dlopen("SDL.so", RTLD_LAZY);
+    if (!res) res = dlopen("libSDL.so", RTLD_LAZY);
     return res;
 }
 
-static void* sdl1_getDllProc(void * aLibrary, const char *aProcName)
+static void* sdl1_getDllProc(void* aLibrary, const char* aProcName)
 {
     return dlsym(aLibrary, aProcName);
 }
@@ -74,58 +74,57 @@ static void* sdl1_getDllProc(void * aLibrary, const char *aProcName)
 static int sdl1_load_dll()
 {
 #ifdef WINDOWS_VERSION
-	HMODULE dll = NULL;
+    HMODULE dll = NULL;
 #else
-	void * dll = NULL;
+    void * dll = NULL;
 #endif
 
-	if (dSDL1_OpenAudio != NULL)
-	{
-		return 1;
-	}
+    if (dSDL1_OpenAudio != NULL)
+    {
+        return 1;
+    }
 
     dll = sdl1_openDll();
 
     if (dll)
     {
-	    dSDL1_OpenAudio = (SDLOpenAudio)sdl1_getDllProc(dll, "SDL_OpenAudio");
-	    dSDL1_CloseAudio = (SDLCloseAudio)sdl1_getDllProc(dll, "SDL_CloseAudio");
-	    dSDL1_PauseAudio = (SDLPauseAudio)sdl1_getDllProc(dll, "SDL_PauseAudio");
-
+        dSDL1_OpenAudio = (SDLOpenAudio)sdl1_getDllProc(dll, "SDL_OpenAudio");
+        dSDL1_CloseAudio = (SDLCloseAudio)sdl1_getDllProc(dll, "SDL_CloseAudio");
+        dSDL1_PauseAudio = (SDLPauseAudio)sdl1_getDllProc(dll, "SDL_PauseAudio");
 
         if (dSDL1_OpenAudio &&
-        	dSDL1_CloseAudio &&
-        	dSDL1_PauseAudio)
+            dSDL1_CloseAudio &&
+            dSDL1_PauseAudio)
         {
-        	return 1;
+            return 1;
         }
-	}
-	dSDL1_OpenAudio = NULL;
+    }
+    dSDL1_OpenAudio = NULL;
     return 0;
 }
 
 int dll_SDL1_found()
 {
-	return sdl1_load_dll();
+    return sdl1_load_dll();
 }
 
 int dll_SDL1_OpenAudio(SDL_AudioSpec *desired, SDL_AudioSpec *obtained)
 {
-	if (sdl1_load_dll())
-		return dSDL1_OpenAudio(desired, obtained);
-	return 0;
+    if (sdl1_load_dll())
+        return dSDL1_OpenAudio(desired, obtained);
+    return 0;
 }
 
 void dll_SDL1_CloseAudio()
 {
-	if (sdl1_load_dll())
-		dSDL1_CloseAudio();
+    if (sdl1_load_dll())
+        dSDL1_CloseAudio();
 }
 
 void dll_SDL1_PauseAudio(int pause_on)
 {
-	if (sdl1_load_dll())
-		dSDL1_PauseAudio(pause_on);
+    if (sdl1_load_dll())
+        dSDL1_PauseAudio(pause_on);
 }
 
 #endif

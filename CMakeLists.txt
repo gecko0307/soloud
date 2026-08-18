@@ -5,19 +5,21 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(BUILD_SHARED_LIBS "Build SoLoud as a shared library" ON)
-option(SOLOUD_WITH_WINMM "Enable WinMM backend" ON)
-option(SOLOUD_WITH_WASAPI "Enable WASAPI backend" ON)
-option(SOLOUD_WITH_XAUDIO2 "Enable XAudio2 backend" ON)
-option(SOLOUD_WITH_DSOUND "Enable DirectSound backend" ON)
-option(SOLOUD_WITH_COREAUDIO "Enable CoreAudio backend" ON)
-option(SOLOUD_WITH_ALSA "Enable ALSA backend" ON)
-option(SOLOUD_WITH_OSS "Enable OSS backend" ON)
-option(SOLOUD_WITH_JACK "Enable JACK backend" OFF)
+
+option(SOLOUD_WITH_SDL1 "Enable SDL1 backend" ON)
 option(SOLOUD_WITH_SDL2 "Enable SDL2 backend" ON)
 option(SOLOUD_WITH_SDL3 "Enable SDL3 backend" ON)
 option(SOLOUD_WITH_MINIAUDIO "Enable Miniaudio backend" ON)
 option(SOLOUD_WITH_OPENAL "Enable OpenAL backend" ON)
 option(SOLOUD_WITH_PORTAUDIO "Enable PortAudio backend" ON)
+option(SOLOUD_WITH_WINMM "Enable WinMM backend" ON)
+option(SOLOUD_WITH_WASAPI "Enable WASAPI backend" ON)
+option(SOLOUD_WITH_XAUDIO2 "Enable XAudio2 backend" ON)
+option(SOLOUD_WITH_DSOUND "Enable DirectSound backend" ON)
+option(SOLOUD_WITH_ALSA "Enable ALSA backend" ON)
+option(SOLOUD_WITH_OSS "Enable OSS backend" ON)
+option(SOLOUD_WITH_JACK "Enable JACK backend" OFF)
+option(SOLOUD_WITH_COREAUDIO "Enable CoreAudio backend" ON)
 option(SOLOUD_WITH_NULL "Enable Null backend" ON)
 option(SOLOUD_WITH_NOSOUND "Enable NoSound backend" ON)
 
@@ -63,91 +65,55 @@ target_include_directories(soloud
         src/audiosource/wav
 )
 
-if(SOLOUD_WITH_WINMM)
-    if(WIN32)
-        target_sources(soloud PRIVATE src/backend/winmm/soloud_winmm.cpp)
-        target_compile_definitions(soloud PUBLIC WITH_WINMM)
-    endif()
+function(add_soloud_sdl_backend COMPONENT_NAME SDL_VERSION_DEF INCLUDE_DIR_NAME SRC_FILES)
+    add_library(${COMPONENT_NAME} OBJECT ${SRC_FILES})
+    target_include_directories(${COMPONENT_NAME} PRIVATE 
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/backend/sdl/${INCLUDE_DIR_NAME}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    )
+    target_compile_definitions(${COMPONENT_NAME} PRIVATE ${SDL_VERSION_DEF})
+    target_sources(soloud PRIVATE $<TARGET_OBJECTS:${COMPONENT_NAME}>)
+    target_compile_definitions(soloud PUBLIC ${SDL_VERSION_DEF})
+endfunction()
+
+set(SDL_COMMON_LIBS "")
+if(LINUX)
+    set(SDL_COMMON_LIBS dl)
 endif()
 
-if(SOLOUD_WITH_WASAPI)
-    if(WIN32)
-        target_sources(soloud PRIVATE src/backend/wasapi/soloud_wasapi.cpp)
-        target_compile_definitions(soloud PUBLIC WITH_WASAPI)
-        target_link_libraries(soloud PRIVATE ksuser ole32)
-    endif()
-endif()
-
-if(SOLOUD_WITH_XAUDIO2)
-    if(WIN32)
-        target_sources(soloud PRIVATE src/backend/xaudio2/soloud_xaudio2.cpp)
-        target_compile_definitions(soloud PUBLIC WITH_XAUDIO2)
-    endif()
-endif()
-
-if(SOLOUD_WITH_DSOUND)
-    if(WIN32)
-        target_sources(soloud PRIVATE src/backend/dsound/soloud_dsound.cpp)
-        target_compile_definitions(soloud PUBLIC WITH_DSOUND)
-        target_link_libraries(soloud PRIVATE dsound)
-    endif()
-endif()
-
-if(SOLOUD_WITH_COREAUDIO)
-    if(APPLE)
-        target_sources(soloud PRIVATE src/backend/coreaudio/soloud_coreaudio.cpp)
-        target_compile_definitions(soloud PUBLIC WITH_COREAUDIO)
-        target_link_libraries(soloud PRIVATE "-framework AudioToolbox" "-framework AudioUnit")
-    endif()
-endif()
-
-if(SOLOUD_WITH_ALSA)
-    if(LINUX)
-        find_package(ALSA REQUIRED)
-        target_sources(soloud PRIVATE src/backend/alsa/soloud_alsa.cpp)
-        target_compile_definitions(soloud PUBLIC WITH_ALSA)
-        target_link_libraries(soloud PRIVATE ALSA::ALSA pthread dl m)
-    endif()
-endif()
-
-if(SOLOUD_WITH_OSS)
-    if(LINUX)
-        target_sources(soloud PRIVATE src/backend/oss/soloud_oss.cpp)
-        target_compile_definitions(soloud PUBLIC WITH_OSS)
-    endif()
-endif()
-
-if(SOLOUD_WITH_JACK)
-    if(LINUX)
-        target_sources(soloud PRIVATE src/backend/jack/soloud_jack.cpp)
-        target_compile_definitions(soloud PUBLIC WITH_JACK)
-        find_package(PkgConfig REQUIRED)
-        pkg_check_modules(JACK REQUIRED IMPORTED_TARGET jack)
-        target_link_libraries(soloud PRIVATE PkgConfig::JACK)
+if(SOLOUD_WITH_SDL1)
+    add_soloud_sdl_backend(
+        soloud_sdl1_obj 
+        WITH_SDL 
+        include_sdl1 
+        "src/backend/sdl/soloud_sdl1.cpp;src/backend/sdl/soloud_sdl1_dll.c"
+    )
+    if(SDL_COMMON_LIBS)
+        target_link_libraries(soloud PRIVATE ${SDL_COMMON_LIBS})
     endif()
 endif()
 
 if(SOLOUD_WITH_SDL2)
-    target_include_directories(soloud PRIVATE src/backend/sdl/include_sdl2)
-    target_sources(soloud PRIVATE 
-        src/backend/sdl/soloud_sdl2.cpp
-        src/backend/sdl/soloud_sdl2_dll.c
+    add_soloud_sdl_backend(
+        soloud_sdl2_obj 
+        WITH_SDL2 
+        include_sdl2 
+        "src/backend/sdl/soloud_sdl2.cpp;src/backend/sdl/soloud_sdl2_dll.c"
     )
-    target_compile_definitions(soloud PUBLIC WITH_SDL2)
-    if(LINUX)
-        target_link_libraries(soloud PRIVATE dl)
+    if(SDL_COMMON_LIBS)
+        target_link_libraries(soloud PRIVATE ${SDL_COMMON_LIBS})
     endif()
 endif()
 
 if(SOLOUD_WITH_SDL3)
-    target_include_directories(soloud PRIVATE src/backend/sdl/include_sdl3)
-    target_sources(soloud PRIVATE 
-        src/backend/sdl/soloud_sdl3.cpp
-        src/backend/sdl/soloud_sdl3_dll.c
+    add_soloud_sdl_backend(
+        soloud_sdl3_obj 
+        WITH_SDL3 
+        include_sdl3 
+        "src/backend/sdl/soloud_sdl3.cpp;src/backend/sdl/soloud_sdl3_dll.c"
     )
-    target_compile_definitions(soloud PUBLIC WITH_SDL3)
-    if(LINUX)
-        target_link_libraries(soloud PRIVATE dl)
+    if(SDL_COMMON_LIBS)
+        target_link_libraries(soloud PRIVATE ${SDL_COMMON_LIBS})
     endif()
 endif()
 
@@ -178,6 +144,70 @@ if(SOLOUD_WITH_PORTAUDIO)
     target_compile_definitions(soloud PUBLIC WITH_PORTAUDIO)
     if(LINUX)
         target_link_libraries(soloud PRIVATE dl)
+    endif()
+endif()
+
+if(SOLOUD_WITH_WINMM)
+    if(WIN32)
+        target_sources(soloud PRIVATE src/backend/winmm/soloud_winmm.cpp)
+        target_compile_definitions(soloud PUBLIC WITH_WINMM)
+    endif()
+endif()
+
+if(SOLOUD_WITH_WASAPI)
+    if(WIN32)
+        target_sources(soloud PRIVATE src/backend/wasapi/soloud_wasapi.cpp)
+        target_compile_definitions(soloud PUBLIC WITH_WASAPI)
+        target_link_libraries(soloud PRIVATE ksuser ole32)
+    endif()
+endif()
+
+if(SOLOUD_WITH_XAUDIO2)
+    if(WIN32)
+        target_sources(soloud PRIVATE src/backend/xaudio2/soloud_xaudio2.cpp)
+        target_compile_definitions(soloud PUBLIC WITH_XAUDIO2)
+    endif()
+endif()
+
+if(SOLOUD_WITH_DSOUND)
+    if(WIN32)
+        target_sources(soloud PRIVATE src/backend/dsound/soloud_dsound.cpp)
+        target_compile_definitions(soloud PUBLIC WITH_DSOUND)
+        target_link_libraries(soloud PRIVATE dsound)
+    endif()
+endif()
+
+if(SOLOUD_WITH_ALSA)
+    if(LINUX)
+        find_package(ALSA REQUIRED)
+        target_sources(soloud PRIVATE src/backend/alsa/soloud_alsa.cpp)
+        target_compile_definitions(soloud PUBLIC WITH_ALSA)
+        target_link_libraries(soloud PRIVATE ALSA::ALSA pthread dl m)
+    endif()
+endif()
+
+if(SOLOUD_WITH_OSS)
+    if(LINUX)
+        target_sources(soloud PRIVATE src/backend/oss/soloud_oss.cpp)
+        target_compile_definitions(soloud PUBLIC WITH_OSS)
+    endif()
+endif()
+
+if(SOLOUD_WITH_JACK)
+    if(LINUX)
+        target_sources(soloud PRIVATE src/backend/jack/soloud_jack.cpp)
+        target_compile_definitions(soloud PUBLIC WITH_JACK)
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(JACK REQUIRED IMPORTED_TARGET jack)
+        target_link_libraries(soloud PRIVATE PkgConfig::JACK)
+    endif()
+endif()
+
+if(SOLOUD_WITH_COREAUDIO)
+    if(APPLE)
+        target_sources(soloud PRIVATE src/backend/coreaudio/soloud_coreaudio.cpp)
+        target_compile_definitions(soloud PUBLIC WITH_COREAUDIO)
+        target_link_libraries(soloud PRIVATE "-framework AudioToolbox" "-framework AudioUnit")
     endif()
 endif()
 

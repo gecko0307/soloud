@@ -34,26 +34,28 @@ freely, subject to the following restrictions:
 typedef Uint32            (*SDL2_WasInit_t)(Uint32 flags);
 typedef int               (*SDL2_InitSubSystem_t)(Uint32 flags);
 typedef SDL_AudioDeviceID (*SDL2_OpenAudioDevice_t)(const char*          device,
-												    int                  iscapture,
-												    const SDL_AudioSpec* desired,
-												    SDL_AudioSpec*       obtained,
-												    int                  allowed_changes);
+                                                    int                  iscapture,
+                                                    const SDL_AudioSpec* desired,
+                                                    SDL_AudioSpec*       obtained,
+                                                    int                  allowed_changes);
 typedef void              (*SDL2_CloseAudioDevice_t)(SDL_AudioDeviceID dev);
 typedef void              (*SDL2_PauseAudioDevice_t)(SDL_AudioDeviceID dev,
-												     int               pause_on);
+                                                     int               pause_on);
+typedef SDL_bool (*SDL2_SetHintWithPriority_t)(const char* name, const char* value, SDL_HintPriority priority);
 
 static SDL2_WasInit_t SDL2_WasInit = NULL;
 static SDL2_InitSubSystem_t SDL2_InitSubSystem = NULL;
 static SDL2_OpenAudioDevice_t SDL2_OpenAudioDevice = NULL;
 static SDL2_CloseAudioDevice_t SDL2_CloseAudioDevice = NULL;
 static SDL2_PauseAudioDevice_t SDL2_PauseAudioDevice = NULL;
+static SDL2_SetHintWithPriority_t SDL2_SetHintWithPriority = NULL;
 
 #ifdef WINDOWS_VERSION
 #include <windows.h>
 
 static HMODULE sdl2_openDll()
 {
-	HMODULE res = LoadLibraryA("SDL2.dll");
+    HMODULE res = LoadLibraryA("SDL2.dll");
     return res;
 }
 
@@ -67,10 +69,10 @@ static void* sdl2_getDllProc(HMODULE aDllHandle, const char *aProcName)
 
 static void * sdl2_openDll()
 {
-	void * res;
-	res = dlopen("/Library/Frameworks/SDL2.framework/SDL2", RTLD_LAZY);
-	if (!res) res = dlopen("SDL2.so", RTLD_LAZY);
-	if (!res) res = dlopen("libSDL2.so", RTLD_LAZY);
+    void * res;
+    res = dlopen("/Library/Frameworks/SDL2.framework/SDL2", RTLD_LAZY);
+    if (!res) res = dlopen("SDL2.so", RTLD_LAZY);
+    if (!res) res = dlopen("libSDL2.so", RTLD_LAZY);
     return res;
 }
 
@@ -84,80 +86,89 @@ static void* sdl2_getDllProc(void * aLibrary, const char *aProcName)
 static int sdl2_load_dll()
 {
 #ifdef WINDOWS_VERSION
-	HMODULE dll = NULL;
+    HMODULE dll = NULL;
 #else
-	void * dll = NULL;
+    void * dll = NULL;
 #endif
 
-	if (SDL2_OpenAudioDevice != NULL)
-	{
-		return 1;
-	}
+    if (SDL2_OpenAudioDevice != NULL)
+    {
+        return 1;
+    }
 
     dll = sdl2_openDll();
 
     if (dll)
     {
-		SDL2_WasInit = (SDL2_WasInit_t)sdl2_getDllProc(dll, "SDL_WasInit");
-		SDL2_InitSubSystem = (SDL2_InitSubSystem_t)sdl2_getDllProc(dll, "SDL_InitSubSystem");
-		SDL2_OpenAudioDevice = (SDL2_OpenAudioDevice_t)sdl2_getDllProc(dll, "SDL_OpenAudioDevice");
-		SDL2_CloseAudioDevice = (SDL2_CloseAudioDevice_t)sdl2_getDllProc(dll, "SDL_CloseAudioDevice");
-		SDL2_PauseAudioDevice = (SDL2_PauseAudioDevice_t)sdl2_getDllProc(dll, "SDL_PauseAudioDevice");
+        SDL2_WasInit = (SDL2_WasInit_t)sdl2_getDllProc(dll, "SDL_WasInit");
+        SDL2_InitSubSystem = (SDL2_InitSubSystem_t)sdl2_getDllProc(dll, "SDL_InitSubSystem");
+        SDL2_OpenAudioDevice = (SDL2_OpenAudioDevice_t)sdl2_getDllProc(dll, "SDL_OpenAudioDevice");
+        SDL2_CloseAudioDevice = (SDL2_CloseAudioDevice_t)sdl2_getDllProc(dll, "SDL_CloseAudioDevice");
+        SDL2_PauseAudioDevice = (SDL2_PauseAudioDevice_t)sdl2_getDllProc(dll, "SDL_PauseAudioDevice");
+        SDL2_SetHintWithPriority = (SDL2_SetHintWithPriority_t)sdl2_getDllProc(dll, "SDL_SetHintWithPriority");
 
         if (SDL2_WasInit &&
-        	SDL2_InitSubSystem &&
-        	SDL2_OpenAudioDevice &&
-			SDL2_CloseAudioDevice &&
-			SDL2_PauseAudioDevice)
+            SDL2_InitSubSystem &&
+            SDL2_OpenAudioDevice &&
+            SDL2_CloseAudioDevice &&
+            SDL2_PauseAudioDevice &&
+            SDL2_SetHintWithPriority)
         {
-        	return 1;
+            return 1;
         }
-	}
-	SDL2_OpenAudioDevice = NULL;
+    }
+    SDL2_OpenAudioDevice = NULL;
     return 0;
 }
 
 int dll_SDL2_found()
 {
-	return sdl2_load_dll();
+    return sdl2_load_dll();
 }
 
 Uint32 dll_SDL2_WasInit(Uint32 flags)
 {
-	if (SDL2_WasInit)
-		return SDL2_WasInit(flags);
-	return 0;
+    if (SDL2_WasInit)
+        return SDL2_WasInit(flags);
+    return 0;
 }
 
 int dll_SDL2_InitSubSystem(Uint32 flags)
 {
-	if (SDL2_InitSubSystem)
-		return SDL2_InitSubSystem(flags);
-	return -1;
+    if (SDL2_InitSubSystem)
+        return SDL2_InitSubSystem(flags);
+    return -1;
 }
 
 SDL_AudioDeviceID dll_SDL2_OpenAudioDevice(const char*          device,
-										   int                  iscapture,
-										   const SDL_AudioSpec* desired,
-										   SDL_AudioSpec*       obtained,
-										   int                  allowed_changes)
+                                           int                  iscapture,
+                                           const SDL_AudioSpec* desired,
+                                           SDL_AudioSpec*       obtained,
+                                           int                  allowed_changes)
 {
-	if (SDL2_OpenAudioDevice)
-		return SDL2_OpenAudioDevice(device, iscapture, desired, obtained, allowed_changes);
-	return 0;
+    if (SDL2_OpenAudioDevice)
+        return SDL2_OpenAudioDevice(device, iscapture, desired, obtained, allowed_changes);
+    return 0;
 }
 
 void dll_SDL2_CloseAudioDevice(SDL_AudioDeviceID dev)
 {
-	if (SDL2_CloseAudioDevice)
-		SDL2_CloseAudioDevice(dev);
+    if (SDL2_CloseAudioDevice)
+        SDL2_CloseAudioDevice(dev);
 }
 
 void dll_SDL2_PauseAudioDevice(SDL_AudioDeviceID dev,
-							   int               pause_on)
+                               int               pause_on)
 {
-	if (SDL2_PauseAudioDevice)
-		SDL2_PauseAudioDevice(dev, pause_on);
+    if (SDL2_PauseAudioDevice)
+        SDL2_PauseAudioDevice(dev, pause_on);
+}
+
+SDL_bool dll_SDL2_SetHintWithPriority(const char* name, const char* value, SDL_HintPriority priority)
+{
+    if (SDL2_SetHintWithPriority)
+        return SDL2_SetHintWithPriority(name, value, priority);
+    return SDL_FALSE;
 }
 
 #endif
