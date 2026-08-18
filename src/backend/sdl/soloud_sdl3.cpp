@@ -26,6 +26,7 @@ freely, subject to the following restrictions:
  * SDL3 backend by Vincent Hamm
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "soloud.h"
@@ -153,8 +154,8 @@ namespace SoLoud
             static_cast<void *>(aSoloud)
         );
         
-        if (!gBackendData.audioStream)
-            printf("SDL_OpenAudioDeviceStream(F32) failed: %s\n", dll_SDL3_GetError());
+        //if (!gBackendData.audioStream)
+        //    printf("SDL_OpenAudioDeviceStream failed: %s\n", dll_SDL3_GetError());
 
         gBackendData.audioDeviceId = dll_SDL3_GetAudioStreamDevice(gBackendData.audioStream);
 
@@ -172,7 +173,7 @@ namespace SoLoud
 
             if (gBackendData.audioDeviceId == NULL)
             {
-                printf("SDL_GetAudioStreamDevice failed\n");
+                printf("SDL_GetAudioStreamDevice failed: %s\n", dll_SDL3_GetError());
                 return UNKNOWN_ERROR;
             }
         }
