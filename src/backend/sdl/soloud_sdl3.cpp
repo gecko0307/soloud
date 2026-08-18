@@ -153,13 +153,10 @@ namespace SoLoud
             soloud_sdl3_audiomixer,
             static_cast<void *>(aSoloud)
         );
-        
-        //if (!gBackendData.audioStream)
-        //    printf("SDL_OpenAudioDeviceStream failed: %s\n", dll_SDL3_GetError());
 
         gBackendData.audioDeviceId = dll_SDL3_GetAudioStreamDevice(gBackendData.audioStream);
 
-        if (gBackendData.audioDeviceId == NULL)
+        if (gBackendData.audioDeviceId == 0)
         {
             as.format = SDL_AUDIO_S16;
             gBackendData.audioStream = dll_SDL3_OpenAudioDeviceStream(
@@ -171,7 +168,7 @@ namespace SoLoud
 
             gBackendData.audioDeviceId = dll_SDL3_GetAudioStreamDevice(gBackendData.audioStream);
 
-            if (gBackendData.audioDeviceId == NULL)
+            if (gBackendData.audioDeviceId == 0)
             {
                 printf("SDL_GetAudioStreamDevice failed: %s\n", dll_SDL3_GetError());
                 return UNKNOWN_ERROR;

@@ -67,6 +67,9 @@ target_include_directories(soloud
 
 function(add_soloud_sdl_backend COMPONENT_NAME SDL_VERSION_DEF INCLUDE_DIR_NAME SRC_FILES)
     add_library(${COMPONENT_NAME} OBJECT ${SRC_FILES})
+    set_target_properties(${COMPONENT_NAME} PROPERTIES
+        POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS}
+    )
     target_include_directories(${COMPONENT_NAME} PRIVATE 
         "${CMAKE_CURRENT_SOURCE_DIR}/src/backend/sdl/${INCLUDE_DIR_NAME}"
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
@@ -178,7 +181,7 @@ if(SOLOUD_WITH_DSOUND)
 endif()
 
 if(SOLOUD_WITH_ALSA)
-    if(LINUX)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         find_package(ALSA REQUIRED)
         target_sources(soloud PRIVATE src/backend/alsa/soloud_alsa.cpp)
         target_compile_definitions(soloud PUBLIC WITH_ALSA)
@@ -187,14 +190,14 @@ if(SOLOUD_WITH_ALSA)
 endif()
 
 if(SOLOUD_WITH_OSS)
-    if(LINUX)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         target_sources(soloud PRIVATE src/backend/oss/soloud_oss.cpp)
         target_compile_definitions(soloud PUBLIC WITH_OSS)
     endif()
 endif()
 
 if(SOLOUD_WITH_JACK)
-    if(LINUX)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         target_sources(soloud PRIVATE src/backend/jack/soloud_jack.cpp)
         target_compile_definitions(soloud PUBLIC WITH_JACK)
         find_package(PkgConfig REQUIRED)
