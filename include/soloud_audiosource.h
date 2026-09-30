@@ -31,7 +31,7 @@ freely, subject to the following restrictions:
 
 namespace SoLoud
 {
-	class AudioSource;	
+	class AudioSource;
 	class AudioSourceInstance;
 	class AudioSourceInstance3dData;
 
@@ -39,7 +39,7 @@ namespace SoLoud
 	{
 	public:
 		// Calculate volume multiplier. Assumed to return value between 0 and 1.
-		virtual float collide(Soloud *aSoloud, AudioSourceInstance3dData *aAudioInstance3dData,	int aUserData) = 0;
+		virtual float collide(Soloud *aSoloud, AudioSourceInstance3dData *aAudioInstance3dData, int aUserData) = 0;
 	};
 
 	class AudioAttenuator
